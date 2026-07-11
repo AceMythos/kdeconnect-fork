@@ -7,7 +7,9 @@
 #ifndef SHAREPLUGIN_H
 #define SHAREPLUGIN_H
 
+#include <QElapsedTimer>
 #include <QPointer>
+#include <QUuid>
 
 #include <core/compositefiletransferjob.h>
 #include <core/kdeconnectplugin.h>
@@ -46,6 +48,10 @@ private Q_SLOTS:
 
 Q_SIGNALS:
     Q_SCRIPTABLE void shareReceived(const QString &url);
+    Q_SCRIPTABLE void transferStarted(const QString &transferId, const QString &fileName, quint64 totalBytes);
+    Q_SCRIPTABLE void transferProgress(const QString &transferId, quint64 bytesTransferred, quint64 totalBytes, int percent);
+    Q_SCRIPTABLE void transferFinished(const QString &transferId, const QString &url);
+    Q_SCRIPTABLE void transferFailed(const QString &transferId, int errorCode, const QString &errorString);
 
 private:
     void finished(KJob *job, const qint64 dateCreated, const qint64 dateModified, const bool open);
@@ -56,5 +62,6 @@ private:
     void setDateCreated(const QUrl &destination, const qint64 timestamp);
 
     QPointer<CompositeFileTransferJob> m_compositeJob;
+    QElapsedTimer m_progressThrottle;
 };
 #endif

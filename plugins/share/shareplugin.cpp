@@ -130,8 +130,30 @@ bool SharePlugin::receivePacket(const NetworkPacket &np)
             FileTransferJob *job = np.createPayloadTransferJob(destination);
             job->setOriginName(device()->name() + QStringLiteral(": ") + filename);
             job->setAutoRenameIfDestinatinonExists(true);
-            connect(job, &KJob::result, this, [this, dateCreated, dateModified, open](KJob *job) -> void {
+
+            const QString transferId = QUuid::createUuid().toString(QUuid::WithoutBraces);
+            const quint64 totalBytes = np.payloadSize() >= 0 ? static_cast<quint64>(np.payloadSize()) : 0;
+            m_progressThrottle.invalidate();
+            Q_EMIT transferStarted(transferId, filename, totalBytes);
+
+            connect(job, QOverload<KJob *, KJob::Unit, qulonglong>::of(&KJob::processedAmount), this, [this, transferId](KJob *j, KJob::Unit unit, qulonglong amount) {
+                if (unit != KJob::Bytes)
+                    return;
+                if (m_progressThrottle.isValid() && m_progressThrottle.elapsed() < 150)
+                    return;
+                m_progressThrottle.start();
+                qulonglong total = j->totalAmount(KJob::Bytes);
+                Q_EMIT transferProgress(transferId, amount, total > 0 ? total : 0, static_cast<int>(j->percent()));
+            });
+
+            connect(job, &KJob::result, this, [this, dateCreated, dateModified, open, transferId](KJob *job) -> void {
                 finished(job, dateCreated, dateModified, open);
+                if (!job->error()) {
+                    FileTransferJob *ftjob = qobject_cast<FileTransferJob *>(job);
+                    Q_EMIT transferFinished(transferId, ftjob ? ftjob->destination().toString() : QString());
+                } else {
+                    Q_EMIT transferFailed(transferId, job->error(), job->errorString());
+                }
             });
             m_compositeJob->addSubjob(job);
 

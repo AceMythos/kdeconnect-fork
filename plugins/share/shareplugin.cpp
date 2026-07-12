@@ -18,7 +18,7 @@
 #include <KApplicationTrader>
 #include <KIO/Job>
 #include <KIO/MkpathJob>
-#include <KJobTrackerInterface>
+// KJobTracker intentionally not included — cosmic-connect handles progress display
 #include <KLocalizedString>
 #include <KNotification>
 #include <KPluginFactory>
@@ -124,7 +124,7 @@ bool SharePlugin::receivePacket(const NetworkPacket &np)
                 m_compositeJob = new CompositeFileTransferJob(device()->id());
                 m_compositeJob->setProperty("destUrl", destinationDir().toString());
                 m_compositeJob->setProperty("immediateProgressReporting", true);
-                Daemon::instance()->jobTracker()->registerJob(m_compositeJob);
+                // registerJob intentionally skipped — cosmic-connect shows its own progress
             }
 
             FileTransferJob *job = np.createPayloadTransferJob(destination);

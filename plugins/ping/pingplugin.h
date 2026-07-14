@@ -31,6 +31,9 @@ public:
     }
 
     QString dbusPath() const override;
+
+Q_SIGNALS:
+    Q_SCRIPTABLE void pingReceived();
 };
 
 #endif

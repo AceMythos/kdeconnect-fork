@@ -32,10 +32,7 @@ PingPlugin::~PingPlugin()
 
 bool PingPlugin::receivePacket(const NetworkPacket &np)
 {
-    Daemon::instance()->sendSimpleNotification(QStringLiteral("pingReceived"),
-                                               device()->name(),
-                                               np.get<QString>(QStringLiteral("message"), i18n("Ping!")),
-                                               QStringLiteral("dialog-ok"));
+    Q_EMIT pingReceived();
 
     return true;
 }

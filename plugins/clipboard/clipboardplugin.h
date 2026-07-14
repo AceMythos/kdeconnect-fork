@@ -56,6 +56,7 @@ public:
 
 Q_SIGNALS:
     Q_SCRIPTABLE void autoShareDisabledChanged(bool b);
+    Q_SCRIPTABLE void clipboardReceived(const QString &content);
 
 private Q_SLOTS:
     void clipboardChanged(const QString &content, ClipboardListener::ClipboardContentType contentType);
